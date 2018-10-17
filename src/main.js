@@ -4,6 +4,9 @@ import router from './router'
 import store from './store'
 import './config/rem'
 
+import scroll from './components/scroll.vue'
+Vue.component(scroll.name, scroll)
+
 import './assets/iconfont/iconfont.css'
 import './assets/css/common.css'
 

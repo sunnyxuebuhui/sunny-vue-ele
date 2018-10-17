@@ -23,6 +23,10 @@
 
   export default {
     props: {
+      userInfo: {
+        type: Boolean,
+        default: false
+      },
       isSearch: {
         type: Boolean,
         default: true
@@ -93,7 +97,7 @@
         transform translateY(-50%)
         font-size .15rem
       .head_center
-        padding 0 20% 0 10%
+        padding 0 20% 0 20%
         flex 0 0 100%
         box-sizing border-box
         font-size .2rem
