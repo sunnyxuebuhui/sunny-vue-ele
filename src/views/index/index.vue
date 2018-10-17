@@ -1,6 +1,6 @@
 <template>
   <div class="wrapper">
-    <head-top :headTitle="headTitle"></head-top>
+    <head-top :headTitle="headTitle" :signinUp="true"></head-top>
     <section class="content_wrapper">
       <scroll :data="foodTypes" ref="scrollFood">
         <ul class="food_list">

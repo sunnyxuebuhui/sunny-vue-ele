@@ -1,19 +1,23 @@
 <template>
   <div class="head">
     <header class="head_wrapper">
-      <span class="icon">
+      <span class="icon" v-if="isShowSearch">
         <i class="iconfont" :class="[isSearch ? 'icon-sousuo' : 'icon-changyonglogo40']"></i>
       </span>
-      <section class="head_goback" v-if="goBack" @click="$router.go(-1)">
+      <section class="head_goback icon" v-else @click="$router.go(-1)">
         <i class="iconfont icon-fanhui"></i>
       </section>
-      <section class="head_center ell">
+      <section class="head_center ell" >
         <span>{{headTitle}}</span>
       </section>
-      <section class="head_login"  @click="getUserInfo">
+      <section class="head_login" v-if="signinUp"  @click="getUserInfo">
         <i class="iconfont icon-wode" v-if="userInfo"></i>
         <span v-else>登录|注册</span>
       </section>
+      <slot name="edit"></slot>
+      <slot name="msite-title"></slot>
+      <slot name="changecity"></slot>
+      <slot name="changeLogin"></slot>
     </header>
   </div>
 </template>
@@ -23,6 +27,10 @@
 
   export default {
     props: {
+      isShowSearch: {
+        type: Boolean,
+        default: true
+      },
       userInfo: {
         type: Boolean,
         default: false
@@ -30,10 +38,6 @@
       isSearch: {
         type: Boolean,
         default: true
-      },
-      goBack: {
-        type: Boolean,
-        default: false
       },
       signinUp: {
         type: Boolean,
@@ -65,6 +69,9 @@
 </script>
 
 <style scoped lang="stylus">
+  .icon-fanhui
+    font-size .24rem
+
   .head
     position fixed
     top 0
