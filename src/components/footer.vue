@@ -51,6 +51,7 @@
         height .44rem
         i 
           font-size .2rem
+          margin-bottom -.07rem
         i.icon-changyonglogo40
           transform scale(1.4)
         i.icon-dingdan
