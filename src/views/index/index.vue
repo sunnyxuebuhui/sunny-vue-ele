@@ -1,6 +1,6 @@
 <template>
   <div class="wrapper">
-    <head-top :headTitle="headTitle" :signinUp="true"></head-top>
+    <head-top :headTitle="headTitle" @centerClick="centerClick" :signinUp="true"></head-top>
     <section class="content_wrapper">
       <scroll :data="foodTypes" ref="scrollFood">
         <ul class="food_list">
@@ -61,7 +61,12 @@
       this._initGetFoodList()
     },
     methods: {
-      shopListLoaded(){
+      centerClick() {
+        this.$router.push({
+          name: 'city'
+        })
+      },
+      shopListLoaded() {
         let scrolls = this.$refs.scrollFood
         setTimeout(() => {
           scrolls.refresh()

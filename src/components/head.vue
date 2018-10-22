@@ -7,7 +7,7 @@
       <section class="head_goback icon" v-else @click="$router.go(-1)">
         <i class="iconfont icon-fanhui"></i>
       </section>
-      <section class="head_center ell" >
+      <section class="head_center ell" @click="centerClick">
         <span>{{headTitle}}</span>
       </section>
       <section class="head_login" v-if="signinUp"  @click="getUserInfo">
@@ -60,6 +60,9 @@
     methods: {
       getUserInfo() {
 
+      },
+      centerClick() {
+        this.$emit('centerClick')
       },
       ...mapActions([
         // 'getUserInfo'

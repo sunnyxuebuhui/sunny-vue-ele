@@ -2,6 +2,7 @@ import Vue from 'vue'
 import Router from 'vue-router'
 import Home from './views/index/index'
 import City from './views/city/city'
+import CityDetail from './views/city/cityDetail'
 
 Vue.use(Router)
 
@@ -15,9 +16,9 @@ export default new Router({
       component: Home
     },
     {
-      path: '/home',
-      name: 'home',
-      component: Home
+      path: '/cityDetail',
+      name: 'cityDetail',
+      component: CityDetail
     },
     {
       path: '/city',

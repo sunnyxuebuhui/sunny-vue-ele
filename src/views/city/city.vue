@@ -1,207 +1,142 @@
 <template>
   <div class="city_wrapper">
-    <head-top :headTitle="headTitle" :isShowSearch="false">
-      <span class="change_city" slot="changecity">切换城市</span>
-    </head-top>
     <div class="input_wrapper">
-      <input type="text" placeholder="输入学校、商务楼、地址" v-model='inputVaule'>
-      <span class="btn" @click="submit">提交</span>
+      <div class="input_flex">
+        <i class="iconfont icon-fanhui" @click="$router.go(-1)"></i>
+        <p>
+          <input type="text" v-model="inputVal" placeholder="请搜索城市名">
+          <i class="iconfont icon-sousuo"></i>
+        </p>
+        <i class="iconfont icon-tubiao-" @click="toCityDetail"></i>
+      </div>
     </div>
-    <div class="place_list">
-      <scroll ref='scrollList' :data="placelist">
-        <p class="his_title" v-show="isShowHis && placeHistory.length > 0">历史记录</p>
-        <ul class="his_place_list" v-show="isShowHis">
-          <li v-for="(item, index) in placeHistory" :key="index" @click="onSelectHis(item)">
-            <p class="name">{{item.name}}</p>
-            <p class="address">{{item.address}}</p>
-          </li>
-        </ul>
-        <p class="clear" v-if="isShowHis && placeHistory.length > 0" @click="clearHistory">清除所有</p>
-        <ul class="search_place_list" v-show="isShowList">
-          <li v-for="(item, index) in placelist" :key="index" @click="onSelectPlace(item)">
-            <p class="name">{{item.name}}</p>
-            <p class="address">{{item.address}}</p>
-          </li>
-        </ul>
-      </scroll>
-    </div>
+    <list-view :data="cityListArr" :hotcity="hotcity" :cityList="cityList"></list-view>
   </div>
 </template>
 
 <script>
-  import HeadTop from '../../components/head.vue'
-  import {currentcity, searchplace} from '../../service/getData'
-  import {getStore, setStore, removeStore} from '../../config/mUtils'
+  import ListView from './listView'
+  import {cityGuess, hotcity, groupcity} from '../../service/getData'
 
   export default {
     components: {
-      HeadTop
+      ListView
     },
     data() {
       return {
-        headTitle: '上海',
-        inputVaule: '', // 搜索地址
-        cityid: '1', // 当前城市id
-        cityname: '', // 当前城市名字
-        placelist: [], // 搜索城市列表
-        placeHistory: [], // 历史搜索记录
-        selectedPlaceList: [], // 选中的地址
-        isShowHis: true,
-        isShowList: false
+        inputVal: '', // 搜索值
+        guessCity: '',   //当前城市
+        guessCityid: '', //当前城市id
+        hotcity: [],     //热门城市列表
+        groupcity: {},   //所有城市列表
+        cityList: {},
+        cityListArr: []
       }
     },
     mounted() {
-      this.initData()
+      this._initData()
     },
     methods: {
-      //发送搜索信息inputVaule
-      submit() {
-        // 输入值不为空时才发送信息
-        if (this.inputVaule) {
-          searchplace(this.cityid, this.inputVaule).then(res => {
-            this.placelist = res;
-            this.isShowHis = false
-            this.isShowList = true
-          })
-        }
+      toCityDetail( ) {
+        this.$router.push({
+          name: 'cityDetail'
+        })
       },
-      initData(){
-        //获取搜索历史记录
-        if (getStore('placeHistory')) {
-          this.placeHistory = JSON.parse(getStore('placeHistory'))
-        } else {
-          this.placeHistory = []
-        }
-      },
-      onSelectPlace(item) {
-        this.setHisPlaceList(item)
-      },
-      setHisPlaceList(obj) {
-        let history = getStore('placeHistory')
-        let geohash = obj.geohash
-        if (history) {
-          let hisList = JSON.parse(history)
-          let falg = false
-          falg = hisList.some(item => item.geohash === geohash)
-          if (!falg) {
-            hisList.forEach(element => {
-              this.selectedPlaceList.unshift(element)
-            })
-            this.selectedPlaceList.unshift(obj)
-          } 
-        } else {
-          this.selectedPlaceList.unshift(obj)
-        }
-        
-        setStore('placeHistory', this.selectedPlaceList)
-        this.selectedPlaceList = []
-        this.placeHistory = JSON.parse(getStore('placeHistory'))
+      _initData() {
+        // 获取当前城市
+        cityGuess().then(res => {
+          this.guessCity = res.name;
+          this.guessCityid = res.id;
+        })
 
-        this.$router.push({
-          name: 'home'
+        //获取热门城市
+        hotcity().then(res => {
+          this.hotcity = res;
+          console.log(res)
+        })
+
+        //获取所有城市
+        groupcity().then(res => {
+          this.cityListArr = Object.values(res)
+          this.cityList = this.normalizeCityList(res)
         })
       },
-      onSelectHis(item) {
-        this.$router.push({
-          name: 'home'
+      normalizeCityList(map) {
+        if (!map) return {}
+        let sortobj = {
+          '热': this.hotcity
+        };
+        for (let i = 65; i <= 90; i++) {
+          if (map[String.fromCharCode(i)]) {
+            sortobj[String.fromCharCode(i)] = map[String.fromCharCode(i)];
+          }
+        }
+        console.log(1,sortobj)
+        return sortobj
+      },
+      searchCityList() {
+        let inputVal = this.inputVal
+        let reg = new RegExp(`^${inputVal}`, 'i');
+        let rsArr = []
+        this.cityListArr.map(item => {
+          item.map(val => {
+            if (reg.test(val.name) || reg.test(val.pinyin) || reg.test(val.id)) {
+              rsArr.push(val)
+            }
+          })
         })
-      },
-      clearHistory() {
-        removeStore('placeHistory')
-        this.placeHistory.splice(0)
-      },
-      refresh() {
-        let scrolls = this.$refs.scrollList
-        setTimeout(() => {
-          scrolls.refresh()
-        }, 20)
+        console.log(rsArr)
       }
     },
     watch: {
-      inputVaule(newVal) {
-        if (!newVal) {
-          this.isShowHis = true
-          this.isShowList = false
+      inputVal(newValue, oldValue) {
+        if (newValue != '') {
+          this.searchCityList()
         }
       }
-    }
+    },
   }
 </script>
 
 <style scoped lang="stylus">
   .city_wrapper
-    padding-top .44rem
+    position fixed
+    top .55rem
+    bottom 0
     width 100%
     height 100%
-    .change_city
-      position absolute
-      right .1rem
-      top 50%
-      transform translateY(-50%)
-      font-size .14rem
+    overflow hidden
     .input_wrapper
-      position relative
-      margin-bottom .2rem
-      padding 0 .2rem
+      position fixed
+      top 0
+      left 0
+      z-index 999
       width 100%
-      height 1.4rem
-      box-sizing border-box
-      background-color #fff
-      input
-        position absolute
-        top 30%
-        left 50%
-        transform translate(-50%, -50%)
-        width 90%
-        height .4rem
-        background-color #f7f7f7
-        text-indent 1em
-        border none
-      .btn
-        position absolute
-        top 60%
-        left 50%
-        transform translate(-50%, 0%)
-        width 90%
-        height .4rem
-        line-height .4rem
-        text-align center
-        color #fff
-        font-size .18rem
-        border-radius .06rem
-        background-color #008de1
-    .place_list
-      position relative
-      padding 0 .1rem
-      width 100%
-      height calc(100% - 1.84rem)
-      overflow hidden
-      font-size .14rem
-      box-sizing border-box
-      background-color #fff
-      .his_title
-        padding .1rem 0 .1rem .1rem
-        font-size .16rem
-        color #333
-        font-weight 700
-        text-align left
-        border-bottom 1px solid #eee
-      .clear
-        padding .1rem 0 .1rem .1rem
-        font-size .16rem
-      .search_place_list, .his_place_list
-        li
-          display flex
-          flex-direction column
-          justify-content flex-start
-          text-align left 
-          padding .1rem .1rem
-          width 100%
-          border-bottom 1px solid #eee
-          .name
-            color #333
-            font-size .16rem
-          .address
-            color #999
-            font-size .12rem
+      height .5rem
+      .input_flex
+        display flex
+        padding 0 .1rem
+        width 100%
+        height .5rem
+        align-items center
+        box-sizing border-box
+        background-color #fff
+        >i 
+          flex 0 0 10%
+          font-size .22rem
+        >p
+          position relative
+          flex 1
+          input
+            width 100%
+            height .36rem
+            background-color #f5f5f5
+            border none
+            border-radius .1rem
+            text-indent 2.5em
+          i
+            position absolute
+            left .15rem
+            top 50%
+            transform translateY(-50%)
 </style>
